@@ -165,29 +165,53 @@
                 <button class="close-btn" onclick="closeModal()">×</button>
             </div>
             <form id="record-form">
-                <div class="form-group">
+                <!-- 记录类型选择（动态显示） -->
+                <div class="form-group" id="type-select-group">
                     <label>类型</label>
-                    <select id="record-type" required>
+                    <select id="record-type">
                         <option value="charge">充电</option>
                         <option value="fuel">加油</option>
                     </select>
                 </div>
+                
+                <!-- 金额 -->
                 <div class="form-group">
                     <label>金额 (¥)</label>
                     <input type="number" id="record-amount" step="0.01" required>
                 </div>
+                
+                <!-- 电量/油量（仅能源用） -->
                 <div class="form-group" id="quantity-group">
                     <label>度数/升数</label>
                     <input type="number" id="record-quantity" step="0.1">
                 </div>
+                
+                <!-- 扣分（仅违章用） -->
+                <div class="form-group hidden" id="points-group">
+                    <label>扣分</label>
+                    <input type="number" id="record-points" value="0">
+                </div>
+                
                 <div class="form-group">
                     <label>日期</label>
                     <input type="date" id="record-date" required>
                 </div>
-                <div class="form-group">
+                
+                <!-- 里程（能源用） -->
+                <div class="form-group" id="mileage-group">
                     <label>当前里程 (km)</label>
                     <input type="number" id="record-mileage">
                 </div>
+                
+                <!-- 处理状态（违章用） -->
+                <div class="form-group hidden" id="status-group">
+                    <label>处理状态</label>
+                    <select id="record-status">
+                        <option value="已处理">已处理</option>
+                        <option value="未处理">未处理</option>
+                    </select>
+                </div>
+                
                 <div class="form-group">
                     <label>地点/备注</label>
                     <input type="text" id="record-location">

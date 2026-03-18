@@ -306,24 +306,79 @@ const UI = {
         const modal = document.getElementById('add-modal');
         const title = document.getElementById('modal-title');
         
-        // 设置标题和默认值
-        const typeConfig = {
-            energy: { title: '能源记录', type: 'charge' },
-            maintenance: { title: '保养记录', type: 'maintenance' },
-            daily: { title: '日常花费', type: 'daily' },
-            violation: { title: '违章记录', type: 'violation' }
-        };
-
-        const config = typeConfig[type] || typeConfig.energy;
-        title.textContent = config.title;
-        
-        // 设置记录类型
+        // 获取各个表单元素
+        const typeGroup = document.getElementById('type-select-group');
         const recordType = document.getElementById('record-type');
+        const quantityGroup = document.getElementById('quantity-group');
+        const mileageGroup = document.getElementById('mileage-group');
+        const pointsGroup = document.getElementById('points-group');
+        const statusGroup = document.getElementById('status-group');
+        
+        // 默认隐藏所有可选字段
+        typeGroup.classList.add('hidden');
+        quantityGroup.classList.add('hidden');
+        mileageGroup.classList.add('hidden');
+        pointsGroup.classList.add('hidden');
+        statusGroup.classList.add('hidden');
+        
+        // 根据类型显示不同选项
         if (type === 'energy') {
-            recordType.value = config.type;
-            recordType.parentElement.parentElement.classList.remove('hidden');
-        } else {
-            recordType.parentElement.parentElement.classList.add('hidden');
+            // 能源：显示类型（充电/加油）、数量、里程
+            title.textContent = '能源记录';
+            typeGroup.classList.remove('hidden');
+            recordType.innerHTML = `
+                <option value="charge">充电</option>
+                <option value="fuel">加油</option>
+            `;
+            quantityGroup.classList.remove('hidden');
+            quantityGroup.querySelector('label').textContent = '充电度数 (kWh) / 加油升数 (L)';
+            mileageGroup.classList.remove('hidden');
+            
+        } else if (type === 'maintenance') {
+            // 保养：显示保养类型
+            title.textContent = '保养记录';
+            typeGroup.classList.remove('hidden');
+            recordType.innerHTML = `
+                <option value="小保养">小保养</option>
+                <option value="大保养">大保养</option>
+                <option value="维修">维修</option>
+                <option value="配件">配件更换</option>
+            `;
+            mileageGroup.classList.remove('hidden');
+            
+        } else if (type === 'insurance') {
+            // 保险：显示保险类型
+            title.textContent = '保险记录';
+            typeGroup.classList.remove('hidden');
+            recordType.innerHTML = `
+                <option value="交强险">交强险</option>
+                <option value="商业险">商业险</option>
+            `;
+            
+        } else if (type === 'daily') {
+            // 日常：显示日常类型
+            title.textContent = '日常花费';
+            typeGroup.classList.remove('hidden');
+            recordType.innerHTML = `
+                <option value="洗车">洗车</option>
+                <option value="停车">停车</option>
+                <option value="过路费">过路费</option>
+                <option value="车载用品">车载用品</option>
+                <option value="其他">其他</option>
+            `;
+            
+        } else if (type === 'violation') {
+            // 违章：显示违章类型、扣分、处理状态
+            title.textContent = '违章记录';
+            typeGroup.classList.remove('hidden');
+            recordType.innerHTML = `
+                <option value="违停">违停</option>
+                <option value="闯红灯">闯红灯</option>
+                <option value="超速">超速</option>
+                <option value="其他">其他</option>
+            `;
+            pointsGroup.classList.remove('hidden');
+            statusGroup.classList.remove('hidden');
         }
 
         // 设置日期为今天
@@ -334,6 +389,7 @@ const UI = {
         document.getElementById('record-quantity').value = '';
         document.getElementById('record-mileage').value = '';
         document.getElementById('record-location').value = '';
+        document.getElementById('record-points').value = '0';
 
         // 保存当前类型
         modal.dataset.type = type;
@@ -359,7 +415,9 @@ const UI = {
             quantity: parseFloat(document.getElementById('record-quantity').value) || 0,
             date: document.getElementById('record-date').value,
             mileage: parseInt(document.getElementById('record-mileage').value) || 0,
-            location: document.getElementById('record-location').value
+            location: document.getElementById('record-location').value,
+            points: parseInt(document.getElementById('record-points').value) || 0,
+            status: document.getElementById('record-status')?.value || ''
         };
 
         if (type === 'energy') {
