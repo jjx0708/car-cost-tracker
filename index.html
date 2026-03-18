@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#007AFF">
+    <title>车本 - 用车成本统计</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 首页 -->
+        <div id="home-view" class="view">
+            <div class="header">
+                <h1>🚗 车本</h1>
+                <select id="vehicle-select" class="vehicle-select"></select>
+            </div>
+            
+            <div class="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-label">本月花费</div>
+                    <div class="stat-value" id="monthly-cost">¥0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">今年花费</div>
+                    <div class="stat-value" id="yearly-cost">¥0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">累计花费</div>
+                    <div class="stat-value" id="total-cost">¥0</div>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <button class="action-btn primary" onclick="showAddModal('energy')">
+                    <span>⚡</span> 加油/充电
+                </button>
+                <button class="action-btn" onclick="showAddModal('maintenance')">
+                    <span>🔧</span> 保养
+                </button>
+                <button class="action-btn" onclick="showAddModal('daily')">
+                    <span>📝</span> 日常
+                </button>
+                <button class="action-btn" onclick="showAddModal('violation')">
+                    <span>🚫</span> 违章
+                </button>
+            </div>
+            
+            <div class="recent-records">
+                <h3>最近记录</h3>
+                <div id="recent-list"></div>
+            </div>
+        </div>
+
+        <!-- 记录页 -->
+        <div id="record-view" class="view hidden">
+            <div class="header">
+                <h2>记录</h2>
+            </div>
+            
+            <div class="record-tabs">
+                <button class="tab active" data-type="all">全部</button>
+                <button class="tab" data-type="energy">能源</button>
+                <button class="tab" data-type="maintenance">保养</button>
+                <button class="tab" data-type="insurance">保险</button>
+                <button class="tab" data-type="daily">日常</button>
+                <button class="tab" data-type="violation">违章</button>
+            </div>
+            
+            <div class="record-list" id="record-list"></div>
+        </div>
+
+        <!-- 统计页 -->
+        <div id="stats-view" class="view hidden">
+            <div class="header">
+                <h2>统计</h2>
+                <select id="stats-period">
+                    <option value="month">本月</option>
+                    <option value="year">今年</option>
+                    <option value="all">全部</option>
+                </select>
+            </div>
+            
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3>支出分类</h3>
+                    <canvas id="pie-chart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>月度趋势</h3>
+                    <canvas id="line-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="stats-detail">
+                <h3>详细统计</h3>
+                <div id="stats-detail-list"></div>
+            </div>
+        </div>
+
+        <!-- 车辆页 -->
+        <div id="vehicle-view" class="view hidden">
+            <div class="header">
+                <h2>车辆管理</h2>
+                <button class="btn-small" onclick="showAddVehicle()">+ 添加</button>
+            </div>
+            
+            <div class="vehicle-list" id="vehicle-list"></div>
+        </div>
+
+        <!-- 设置页 -->
+        <div id="settings-view" class="view hidden">
+            <div class="header">
+                <h2>设置</h2>
+            </div>
+            
+            <div class="settings-list">
+                <button class="setting-item" onclick="exportData()">
+                    <span>📤</span> 导出数据
+                </button>
+                <button class="setting-item" onclick="document.getElementById('import-input').click()">
+                    <span>📥</span> 导入数据
+                </button>
+                <input type="file" id="import-input" hidden accept=".json" onchange="importData(this)">
+                <button class="setting-item danger" onclick="clearAllData()">
+                    <span>🗑️</span> 清空数据
+                </button>
+            </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <nav class="tab-bar">
+            <button class="tab-item active" data-view="home">
+                <span class="tab-icon">🏠</span>
+                <span class="tab-label">首页</span>
+            </button>
+            <button class="tab-item" data-view="record">
+                <span class="tab-icon">📋</span>
+                <span class="tab-label">记录</span>
+            </button>
+            <button class="tab-item" data-view="stats">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">统计</span>
+            </button>
+            <button class="tab-item" data-view="vehicle">
+                <span class="tab-icon">🚗</span>
+                <span class="tab-label">车辆</span>
+            </button>
+            <button class="tab-item" data-view="settings">
+                <span class="tab-icon">⚙️</span>
+                <span class="tab-label">设置</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- 添加记录弹窗 -->
+    <div id="add-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">添加记录</h3>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <form id="record-form">
+                <div class="form-group">
+                    <label>类型</label>
+                    <select id="record-type" required>
+                        <option value="charge">充电</option>
+                        <option value="fuel">加油</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>金额 (¥)</label>
+                    <input type="number" id="record-amount" step="0.01" required>
+                </div>
+                <div class="form-group" id="quantity-group">
+                    <label>度数/升数</label>
+                    <input type="number" id="record-quantity" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>日期</label>
+                    <input type="date" id="record-date" required>
+                </div>
+                <div class="form-group">
+                    <label>当前里程 (km)</label>
+                    <input type="number" id="record-mileage">
+                </div>
+                <div class="form-group">
+                    <label>地点/备注</label>
+                    <input type="text" id="record-location">
+                </div>
+                <button type="submit" class="btn-primary">保存</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加车辆弹窗 -->
+    <div id="vehicle-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加车辆</h3>
+                <button class="close-btn" onclick="closeVehicleModal()">×</button>
+            </div>
+            <form id="vehicle-form">
+                <div class="form-group">
+                    <label>车型</label>
+                    <input type="text" id="vehicle-name" required placeholder="如：理想L9">
+                </div>
+                <div class="form-group">
+                    <label>购车日期</label>
+                    <input type="date" id="vehicle-purchase-date">
+                </div>
+                <div class="form-group">
+                    <label>裸车价格 (¥)</label>
+                    <input type="number" id="vehicle-price">
+                </div>
+                <div class="form-group">
+                    <label>初始里程 (km)</label>
+                    <input type="number" id="vehicle-initial-mileage" value="0">
+                </div>
+                <button type="submit" class="btn-primary">保存</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
