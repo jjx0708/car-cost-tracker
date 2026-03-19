@@ -1,163 +1,192 @@
-// storage.js - LocalStorage 封装
+// storage.js - API 调用封装
 
-const STORAGE_KEYS = {
-    VEHICLES: 'car_tracker_vehicles',
-    ENERGY: 'car_tracker_energy',
-    MAINTENANCE: 'car_tracker_maintenance',
-    INSURANCE: 'car_tracker_insurance',
-    DAILY: 'car_tracker_daily',
-    VIOLATION: 'car_tracker_violation',
-    CURRENT_VEHICLE: 'car_tracker_current_vehicle'
+const API_BASE = '/api';
+
+// Token 管理
+const Token = {
+  get() {
+    return localStorage.getItem('token');
+  },
+  set(token) {
+    localStorage.setItem('token', token);
+  },
+  remove() {
+    localStorage.removeItem('token');
+  },
+  getHeaders() {
+    const token = this.get();
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }
 };
 
-const Storage = {
-    // 获取数据
-    get(key) {
-        try {
-            const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : null;
-        } catch (e) {
-            console.error('Storage get error:', e);
-            return null;
-        }
-    },
+// 用户相关 API
+const UserAPI = {
+  async register(username, password) {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '注册失败');
+    return data;
+  },
 
-    // 存储数据
-    set(key, value) {
-        try {
-            localStorage.setItem(key, JSON.stringify(value));
-            return true;
-        } catch (e) {
-            console.error('Storage set error:', e);
-            return false;
-        }
-    },
+  async login(username, password) {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '登录失败');
+    return data;
+  },
 
-    // 删除数据
-    remove(key) {
-        try {
-            localStorage.removeItem(key);
-            return true;
-        } catch (e) {
-            console.error('Storage remove error:', e);
-            return false;
-        }
-    },
+  async changePassword(oldPassword, newPassword) {
+    const res = await fetch(`${API_BASE}/auth/password`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...Token.getHeaders()
+      },
+      body: JSON.stringify({ oldPassword, newPassword })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '修改密码失败');
+    return data;
+  }
+};
 
-    // 清空所有数据
-    clear() {
-        try {
-            Object.values(STORAGE_KEYS).forEach(key => {
-                localStorage.removeItem(key);
-            });
-            return true;
-        } catch (e) {
-            console.error('Storage clear error:', e);
-            return false;
-        }
-    },
+// 车辆相关 API
+const VehicleAPI = {
+  async getList() {
+    const res = await fetch(`${API_BASE}/vehicles`, {
+      headers: Token.getHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '获取车辆列表失败');
+    return data;
+  },
 
-    // 获取车辆列表
-    getVehicles() {
-        return this.get(STORAGE_KEYS.VEHICLES) || [];
-    },
+  async add(vehicle) {
+    const res = await fetch(`${API_BASE}/vehicles`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...Token.getHeaders()
+      },
+      body: JSON.stringify(vehicle)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '添加车辆失败');
+    return data;
+  },
 
-    // 保存车辆列表
-    saveVehicles(vehicles) {
-        return this.set(STORAGE_KEYS.VEHICLES, vehicles);
-    },
+  async update(id, vehicle) {
+    const res = await fetch(`${API_BASE}/vehicles/${id}`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...Token.getHeaders()
+      },
+      body: JSON.stringify(vehicle)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '更新车辆失败');
+    return data;
+  },
 
-    // 获取能源记录
-    getEnergyRecords() {
-        return this.get(STORAGE_KEYS.ENERGY) || [];
-    },
+  async delete(id) {
+    const res = await fetch(`${API_BASE}/vehicles/${id}`, {
+      method: 'DELETE',
+      headers: Token.getHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '删除车辆失败');
+    return data;
+  }
+};
 
-    // 保存能源记录
-    saveEnergyRecords(records) {
-        return this.set(STORAGE_KEYS.ENERGY, records);
-    },
-
-    // 获取保养记录
-    getMaintenanceRecords() {
-        return this.get(STORAGE_KEYS.MAINTENANCE) || [];
-    },
-
-    // 保存保养记录
-    saveMaintenanceRecords(records) {
-        return this.set(STORAGE_KEYS.MAINTENANCE, records);
-    },
-
-    // 获取保险记录
-    getInsuranceRecords() {
-        return this.get(STORAGE_KEYS.INSURANCE) || [];
-    },
-
-    // 保存保险记录
-    saveInsuranceRecords(records) {
-        return this.set(STORAGE_KEYS.INSURANCE, records);
-    },
-
-    // 获取日常花费记录
-    getDailyRecords() {
-        return this.get(STORAGE_KEYS.DAILY) || [];
-    },
-
-    // 保存日常花费记录
-    saveDailyRecords(records) {
-        return this.set(STORAGE_KEYS.DAILY, records);
-    },
-
-    // 获取违章记录
-    getViolationRecords() {
-        return this.get(STORAGE_KEYS.VIOLATION) || [];
-    },
-
-    // 保存违章记录
-    saveViolationRecords(records) {
-        return this.set(STORAGE_KEYS.VIOLATION, records);
-    },
-
-    // 获取当前选中的车辆ID
-    getCurrentVehicleId() {
-        return this.get(STORAGE_KEYS.CURRENT_VEHICLE);
-    },
-
-    // 设置当前选中的车辆ID
-    setCurrentVehicleId(id) {
-        return this.set(STORAGE_KEYS.CURRENT_VEHICLE, id);
-    },
-
-    // 导出所有数据
-    exportAll() {
-        const data = {};
-        Object.keys(STORAGE_KEYS).forEach(key => {
-            data[key] = this.get(STORAGE_KEYS[key]);
-        });
-        return data;
-    },
-
-    // 导入数据
-    importAll(data) {
-        try {
-            Object.keys(data).forEach(key => {
-                if (STORAGE_KEYS[key]) {
-                    this.set(STORAGE_KEYS[key], data[key]);
-                }
-            });
-            return true;
-        } catch (e) {
-            console.error('Import error:', e);
-            return false;
-        }
+// 记录相关 API
+const RecordAPI = {
+  async getList(vehicleId, type) {
+    let url = `${API_BASE}/records/${vehicleId}`;
+    if (type && type !== 'all') {
+      url += `?type=${type}`;
     }
+    const res = await fetch(url, {
+      headers: Token.getHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '获取记录失败');
+    return data;
+  },
+
+  async add(vehicleId, category, data) {
+    const res = await fetch(`${API_BASE}/records`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...Token.getHeaders()
+      },
+      body: JSON.stringify({ vehicleId, category, data })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || '添加记录失败');
+    return result;
+  },
+
+  async delete(id, category) {
+    const res = await fetch(`${API_BASE}/records/${id}?category=${category}`, {
+      method: 'DELETE',
+      headers: Token.getHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '删除记录失败');
+    return data;
+  }
 };
 
-// 生成 UUID
-function generateId() {
-    return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
+// 统计相关 API
+const StatsAPI = {
+  async get(vehicleId, period = 'month') {
+    const res = await fetch(`${API_BASE}/stats/${vehicleId}?period=${period}`, {
+      headers: Token.getHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '获取统计失败');
+    return data;
+  }
+};
+
+// 设置相关 API
+const SettingsAPI = {
+  async get() {
+    const res = await fetch(`${API_BASE}/settings`, {
+      headers: Token.getHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '获取设置失败');
+    return data;
+  },
+
+  async update(settings) {
+    const res = await fetch(`${API_BASE}/settings`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...Token.getHeaders()
+      },
+      body: JSON.stringify(settings)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '更新设置失败');
+    return data;
+  }
+};
 
 // 导出
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { Storage, STORAGE_KEYS, generateId };
+  module.exports = { Token, UserAPI, VehicleAPI, RecordAPI, StatsAPI, SettingsAPI, API_BASE };
 }

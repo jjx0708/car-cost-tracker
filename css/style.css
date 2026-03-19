@@ -449,3 +449,156 @@ body {
 .empty-state p {
     margin-top: 10px;
 }
+
+/* Auth 登录/注册页面 */
+.auth-container {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.logo {
+    font-size: 80px;
+    margin-bottom: 20px;
+}
+
+.auth-container h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.tagline {
+    color: #8E8E93;
+    margin-bottom: 40px;
+}
+
+.auth-tabs {
+    display: flex;
+    margin-bottom: 30px;
+    background: #E5E5EA;
+    border-radius: 10px;
+    padding: 4px;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.auth-tab.active {
+    background: white;
+    font-weight: 600;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 16px;
+    margin-bottom: 15px;
+    border: 1px solid #E5E5EA;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+.auth-tip {
+    margin-top: 15px;
+    color: #FF3B30;
+    font-size: 14px;
+    min-height: 20px;
+}
+
+.logout-btn {
+    background: #FF3B30;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* Header 用户名显示 */
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-user span {
+    font-size: 14px;
+    color: #8E8E93;
+}
+
+/* 加载状态 */
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loader-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007AFF;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loader-message {
+    color: white;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+/* 提示消息 */
+.tip-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 10000;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tip-message.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+.tip-error {
+    background: #FF3B30;
+    color: white;
+}
+
+.tip-success {
+    background: #34C759;
+    color: white;
+}
+
+/* 按钮加载状态 */
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -1,242 +1,238 @@
-# 🚗 私家车用车成本统计 - 产品设计文档
+# 🚗 车本 - 用车成本统计
 
 ## 1. 项目概述
 
 ### 1.1 产品定位
-一款面向私家车主的用车成本记录与统计分析工具，帮助车主清晰了解车辆使用成本。
+一款面向私家车主的用车成本记录与统计分析工具，支持多用户、数据存储在云端。
 
-### 1.2 目标用户
-- 私家车车主（尤其新能源车主）
-- 想要精打细算控制用车成本的用户
-- 需要记录和分析用车开销的用户
-
-### 1.3 核心价值
-- 记录每一次加油/充电，统计百公里能耗
-- 汇总所有用车花费，生成周期性报表
-- 数据可视化，了解支出结构和趋势
+### 1.2 技术架构
+- **前端**：HTML + CSS + JavaScript（保持现有结构）
+- **后端**：Node.js + Express
+- **数据库**：MySQL
+- **部署**：腾讯云服务器
 
 ---
 
 ## 2. 功能清单
 
-### 2.1 车辆管理
+### 2.1 用户系统
 | 功能 | 描述 |
 |------|------|
-| 车辆信息 | 车型、购车日期、裸车价格 |
-| 车辆切换 | 支持多辆车管理 |
+| 用户注册 | 用户名 + 密码 |
+| 用户登录 | 返回Token |
+| Token鉴权 | 请求头携带Token |
+| 修改密码 | 验证原密码后修改 |
 
-### 2.2 能源记录
+### 2.2 车辆管理
 | 功能 | 描述 |
 |------|------|
-| 充电记录 | 金额、度数、日期、充电类型（家充/公充）、当前总里程 |
-| 加油记录 | 金额、升数、单价、日期、加油站、当前总里程 |
-| 能耗计算 | 自动计算两次补能间的百公里电耗/油耗 |
+| 添加车辆 | 车型、购车日期、裸车价格 |
+| 编辑车辆 | 修改车辆信息 |
+| 删除车辆 | 级联删除相关记录 |
+| 车辆列表 | 查看用户所有车辆 |
 
-### 2.3 保养维护
+### 2.3 记录管理
+| 类别 | 子类 |
+|------|------|
+| 能源 | 充电、加油 |
+| 保养 | 小保养、大保养、维修、配件 |
+| 保险 | 交强险、商业险 |
+| 日常 | 洗车、停车、过路费、其他 |
+| 违章 | 违停、闯红灯、超速、其他 |
+
+### 2.4 配置
 | 功能 | 描述 |
 |------|------|
-| 保养记录 | 小保养、大保养、维修、配件更换 |
-| 保养提醒 | 里程或时间提醒（可选功能） |
+| 主题设置 | 深色/浅色 |
+| 默认车辆 | 登录后默认选择的车辆 |
 
-### 2.4 保险费用
+### 2.5 统计
 | 功能 | 描述 |
 |------|------|
-| 交强险 | 金额、起止日期 |
-| 商业险 | 金额、起止日期 |
-
-### 2.5 日常花费 + 违章
-| 功能 | 描述 |
-|------|------|
-| 洗车 | 金额、日期 |
-| 停车 | 金额、日期，地点 |
-| 过路费 | 金额、日期、路段 |
-| 违章 | 金额、日期、原因、扣分 |
-
-### 2.6 罚单统计
-| 功能 | 描述 |
-|------|------|
-| 违章记录 | 罚款金额、扣分、日期、违章原因、处理状态 |
-
-### 2.7 其他支出
-- 车载用品
-- 车内装饰
-- 其他杂费
-
-### 2.8 统计报表
-| 维度 | 描述 |
-|------|------|
-| 周期统计 | 每周、每月、每年、总计花费 |
-| 分类统计 | 能源、保险、保养、日常等占比 |
-| 能耗统计 | 百公里电耗/油耗、平均单次花费 |
-| 趋势图表 | 折线图展示月度花费趋势 |
+| 月度花费 | 本月总花费 |
+| 年度花费 | 本年总花费 |
+| 累计花费 | 所有花费 |
+| 分类统计 | 各类别占比 |
+| 能耗统计 | 百公里电耗/油耗 |
 
 ---
 
-## 3. 数据结构
+## 3. 数据库设计
 
-### 3.1 车辆表 (vehicles)
-```json
-{
-  "id": "uuid",
-  "name": "车型名称",
-  "purchaseDate": "2024-01-01",
-  "purchasePrice": 150000,
-  "initialMileage": 0,
-  "createdAt": "timestamp"
-}
+### 3.1 用户表 (users)
+```sql
+CREATE TABLE users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 ```
 
-### 3.2 能源记录表 (energy_records)
-```json
-{
-  "id": "uuid",
-  "vehicleId": "uuid",
-  "type": "charge | fuel",
-  "amount": 50.00,        // 金额
-  "quantity": 20.0,       // 充电度数 或 加油升数
-  "pricePerUnit": 2.5,    // 单价
-  "date": "2024-01-01",
-  "location": "家充/某充电站",
-  "mileage": 15000,       // 记录时总里程
-  "note": "备注",
-  "createdAt": "timestamp"
-}
+### 3.2 车辆表 (vehicles)
+```sql
+CREATE TABLE vehicles (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  purchase_date DATE,
+  purchase_price DECIMAL(12,2),
+  initial_mileage INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 ```
 
-### 3.3 保养记录表 (maintenance_records)
-```json
-{
-  "id": "uuid",
-  "vehicleId": "uuid",
-  "type": "小保养/大保养/维修/配件",
-  "amount": 300.00,
-  "date": "2024-01-01",
-  "mileage": 15000,
-  "description": "更换机油",
-  "createdAt": "timestamp"
-}
+### 3.3 能源记录表 (energy_records)
+```sql
+CREATE TABLE energy_records (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  vehicle_id INT NOT NULL,
+  type ENUM('charge', 'fuel') NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  quantity DECIMAL(10,2),
+  date DATE NOT NULL,
+  mileage INT,
+  location VARCHAR(100),
+  note TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+);
 ```
 
-### 3.4 保险记录表 (insurance_records)
-```json
-{
-  "id": "uuid",
-  "vehicleId": "uuid",
-  "type": "交强险/商业险",
-  "amount": 3000.00,
-  "startDate": "2024-01-01",
-  "endDate": "2025-01-01",
-  "createdAt": "timestamp"
-}
+### 3.4 保养记录表 (maintenance_records)
+```sql
+CREATE TABLE maintenance_records (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  vehicle_id INT NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  date DATE NOT NULL,
+  mileage INT,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+);
 ```
 
-### 3.5 日常花费表 (daily_expenses)
-```json
-{
-  "id": "uuid",
-  "vehicleId": "uuid",
-  "type": "洗车/停车/过路费/其他",
-  "amount": 30.00,
-  "date": "2024-01-01",
-  "location": "地点",
-  "description": "描述",
-  "createdAt": "timestamp"
-}
+### 3.5 保险记录表 (insurance_records)
+```sql
+CREATE TABLE insurance_records (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  vehicle_id INT NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+);
 ```
 
-### 3.6 违章记录表 (violation_records)
-```json
-{
-  "id": "uuid",
-  "vehicleId": "uuid",
-  "amount": 200.00,        // 罚款金额
-  "points": 3,             // 扣分
-  "date": "2024-01-01",
-  "reason": "违停/闯红灯/超速...",
-  "status": "已处理/未处理",
-  "location": "地点",
-  "description": "描述",
-  "createdAt": "timestamp"
-}
+### 3.6 日常记录表 (daily_records)
+```sql
+CREATE TABLE daily_records (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  vehicle_id INT NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  date DATE NOT NULL,
+  location VARCHAR(100),
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+);
+```
+
+### 3.7 违章记录表 (violation_records)
+```sql
+CREATE TABLE violation_records (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  vehicle_id INT NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  points INT DEFAULT 0,
+  status VARCHAR(20) DEFAULT '未处理',
+  date DATE NOT NULL,
+  location VARCHAR(100),
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+);
+```
+
+### 3.8 用户配置表 (user_settings)
+```sql
+CREATE TABLE user_settings (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT UNIQUE NOT NULL,
+  theme VARCHAR(20) DEFAULT 'light',
+  default_vehicle_id INT,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 ```
 
 ---
 
-## 4. 页面结构
+## 4. API 接口设计
 
-### 4.1 页面清单
-1. **首页/仪表盘** - 当月花费概览、快速记录入口
-2. **记录页** - 添加各类记录
-3. **统计页** - 报表和图表
-4. **车辆页** - 车辆管理
-5. **设置页** - 数据导出/导入、主题设置
+### 4.1 认证
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| POST | /api/auth/register | 注册 |
+| POST | /api/auth/login | 登录 |
+| POST | /api/auth/password | 修改密码 |
 
-### 4.2 导航设计
-- 底部 Tab 导航：首页 | 记录 | 统计 | 我的
-- 首页：车辆选择 + 当月概览 + 最近记录
-- 记录：分类 Tab（能源/保养/保险/日常)
-- 统计：时间筛选 + 图表 + 明细
+### 4.2 车辆
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | /api/vehicles | 获取车辆列表 |
+| POST | /api/vehicles | 添加车辆 |
+| PUT | /api/vehicles/:id | 更新车辆 |
+| DELETE | /api/vehicles/:id | 删除车辆 |
 
----
+### 4.3 记录
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | /api/records/:vehicleId | 获取记录列表 |
+| POST | /api/records | 添加记录 |
+| DELETE | /api/records/:id | 删除记录 |
 
-## 5. 技术方案
+### 4.4 统计
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | /api/stats/:vehicleId | 统计数据 |
 
-### 5.1 前端
-- **框架**：纯 HTML + CSS + JavaScript
-- **存储**：LocalStorage（数据保存在浏览器本地）
-- **图表**：Chart.js
-- **部署**：GitHub Pages
-
-### 5.2 数据存储
-- 使用 LocalStorage 存储所有数据
-- 支持数据导出为 JSON 文件
-- 支持数据导入
-
----
-
-## 6. 界面设计
-
-### 6.1 风格
-- 简洁现代，深色/浅色主题可选
-- 移动端优先设计
-
-### 6.2 配色
-- 主色：#007AFF (蓝色)
-- 背景：#F2F2F7 (浅色) / #000000 (深色)
-- 强调色：#34C759 (绿色，用于收入/节省)
-- 警示色：#FF3B30 (红色，用于支出/警告)
+### 4.5 配置
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | /api/settings | 获取配置 |
+| PUT | /api/settings | 更新配置 |
 
 ---
 
-## 7. 开发计划
+## 5. 开发计划
 
-### Phase 1：核心功能
-- [ ] 车辆管理（增删改查）
-- [ ] 能源记录（充电/加油）
-- [ ] 能耗计算
-- [ ] 基础统计
+### Phase 1：后端基础
+- [ ] MySQL 安装
+- [ ] 数据库表创建
+- [ ] 用户认证API
+- [ ] 车辆CRUD API
+- [ ] 记录CRUD API
+- [ ] 统计API
 
-### Phase 2：扩展功能
-- [ ] 保养记录
-- [ ] 保险记录
-- [ ] 日常花费
-- [ ] 违章记录
+### Phase 2：前端对接
+- [ ] 登录/注册页面
+- [ ] Token管理
+- [ ] 数据对接
+- [ ] 配置功能
 
-### Phase 3：增强功能
-- [ ] 统计报表优化
-- [ ] 图表可视化
-- [ ] 数据导出/导入
-
----
-
-## 8. 备注
-
-- 本应用数据全部保存在浏览器本地，不会泄露用户隐私
-- 增程车可同时记录充电和加油
-- 后续可考虑添加数据同步功能（可选）
+### Phase 3：部署
+- [ ] 服务器环境配置
+- [ ] 部署上线
 
 ---
 
 **文档版本**：v1.0  
-**创建日期**：2026-03-18  
-**作者**：老金的龙虾 🦞
+**更新日期**：2026-03-19

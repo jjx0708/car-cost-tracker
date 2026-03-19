@@ -13,6 +13,28 @@
 </head>
 <body>
     <div id="app">
+        <!-- 登录页面 -->
+        <div id="auth-view" class="view">
+            <div class="auth-container">
+                <div class="logo">🚗</div>
+                <h1>车本</h1>
+                <p class="tagline">用车成本统计</p>
+                
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">登录</button>
+                    <button class="auth-tab" data-tab="register">注册</button>
+                </div>
+                
+                <form id="auth-form" class="auth-form">
+                    <input type="text" id="auth-username" placeholder="用户名" required>
+                    <input type="password" id="auth-password" placeholder="密码" required>
+                    <button type="submit" class="btn-primary" id="auth-submit">登录</button>
+                </form>
+                
+                <div class="auth-tip" id="auth-tip"></div>
+            </div>
+        </div>
+
         <!-- 首页 -->
         <div id="home-view" class="view">
             <div class="header">
