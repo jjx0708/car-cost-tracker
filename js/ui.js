@@ -516,14 +516,14 @@ const UI = {
                     listEl.innerHTML = '<div class=empty-tip>暂无车辆，点击下方添加</div>';
                 } else {
                     listEl.innerHTML = vehicles.map(v => {
-                        return '<div class=vehicle-item>' +
-                            '<div class=vehicle-info>' +
-                                '<div class=vehicle-name>' + v.name + '</div>' +
-                                '<div class=vehicle-meta>' + (v.purchase_date ? '购于 ' + v.purchase_date : '') + ' | ' + (v.purchase_price ? '¥' + v.purchase_price : '') + '</div>' +
+                        return '<div class="vehicle-item">' +
+                            '<div class="vehicle-info">' +
+                                '<div class="vehicle-name">' + v.name + '</div>' +
+                                '<div class="vehicle-meta">' + (v.purchase_date ? '购于 ' + v.purchase_date : '') + ' | ' + (v.purchase_price ? '¥' + v.purchase_price : '') + '</div>' +
                             '</div>' +
-                            '<div class=vehicle-actions>' +
-                                '<button class=btn-icon btn-edit data-id= + v.id +  data-name= + (v.name || ) +  data-date= + (v.purchase_date || ) +  data-price= + (v.purchase_price || ) +  data-mileage= + (v.initial_mileage || ) + >✏️</button>' +
-                                '<button class=btn-icon btn-delete-vehicle data-id= + v.id + >🗑️</button>' +
+                            '<div class="vehicle-actions">' +
+                                '<button class="btn-icon btn-edit" data-id="' + v.id + '" data-name="' + (v.name || '') + '" data-date="' + (v.purchase_date || '') + '" data-price="' + (v.purchase_price || '') + '" data-mileage="' + (v.initial_mileage || '') + '">✏️</button>' +
+                                '<button class="btn-icon btn-delete-vehicle" data-id="' + v.id + '">🗑️</button>' +
                             '</div>' +
                         '</div>';
                     }).join('');
@@ -550,12 +550,15 @@ const UI = {
                     
                     listEl.querySelectorAll('.btn-edit').forEach(btn => {
                         btn.addEventListener('click', () => {
+                            const modal = document.getElementById('vehicle-modal');
+                            modal.classList.remove('hidden');
+                            const title = modal.querySelector('h3');
+                            if (title) title.textContent = '编辑车辆';
                             document.getElementById('vehicle-name').value = btn.dataset.name || '';
-                            document.getElementById('vehicle-date').value = btn.dataset.date || '';
+                            document.getElementById('vehicle-purchase-date').value = btn.dataset.date || '';
                             document.getElementById('vehicle-price').value = btn.dataset.price || '';
-                            document.getElementById('vehicle-mileage').value = btn.dataset.mileage || '';
+                            document.getElementById('vehicle-initial-mileage').value = btn.dataset.mileage || '';
                             document.getElementById('vehicle-id').value = btn.dataset.id;
-                            document.getElementById('vehicle-form-title').textContent = '编辑车辆';
                         });
                     });
                 }
@@ -573,13 +576,13 @@ const UI = {
         const modal = document.getElementById('vehicle-modal');
         if (modal) {
             modal.classList.remove('hidden');
-            const title = document.getElementById('vehicle-form-title');
+            const title = modal.querySelector('h3');
             if (title) title.textContent = '添加车辆';
             // 清空表单
             document.getElementById('vehicle-name').value = '';
-            document.getElementById('vehicle-date').value = '';
+            document.getElementById('vehicle-purchase-date').value = '';
             document.getElementById('vehicle-price').value = '';
-            document.getElementById('vehicle-mileage').value = '';
+            document.getElementById('vehicle-initial-mileage').value = '';
             document.getElementById('vehicle-id').value = '';
         }
     },
@@ -594,9 +597,9 @@ const UI = {
 
     async saveVehicle() {
         const name = document.getElementById('vehicle-name').value.trim();
-        const date = document.getElementById('vehicle-date').value;
+        const date = document.getElementById('vehicle-purchase-date').value;
         const price = parseFloat(document.getElementById('vehicle-price').value) || 0;
-        const mileage = parseInt(document.getElementById('vehicle-mileage').value) || 0;
+        const mileage = parseInt(document.getElementById('vehicle-initial-mileage').value) || 0;
         const id = document.getElementById('vehicle-id').value;
         
         if (!name) {
@@ -617,11 +620,13 @@ const UI = {
             }
             
             document.getElementById('vehicle-name').value = '';
-            document.getElementById('vehicle-date').value = '';
+            document.getElementById('vehicle-purchase-date').value = '';
             document.getElementById('vehicle-price').value = '';
-            document.getElementById('vehicle-mileage').value = '';
+            document.getElementById('vehicle-initial-mileage').value = '';
             document.getElementById('vehicle-id').value = '';
-            document.getElementById('vehicle-form-title').textContent = '添加车辆';
+            
+            // 关闭弹窗
+            document.getElementById('vehicle-modal').classList.add('hidden');
             
             await this.renderVehicles();
             await this.renderVehicleSelect();
