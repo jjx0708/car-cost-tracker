@@ -509,7 +509,7 @@ const UI = {
         this.showLoading('加载车辆...');
         try {
             const vehicles = await VehicleAPI.getList();
-            const listEl = document.getElementById('vehicles-list');
+            const listEl = document.getElementById('vehicle-list');
             
             if (listEl) {
                 if (vehicles.length === 0) {
